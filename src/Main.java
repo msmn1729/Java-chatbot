@@ -1,5 +1,7 @@
 import java.io.*;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 public class Main {
     public static void main(String[] args) throws IOException {
@@ -17,15 +19,39 @@ public class Main {
 
             String[] commandTokenizer = command.split(" ");
             if (commandTokenizer[0].equals("/cal")) {
-                String leftOperand = commandTokenizer[1];
-                String operator = commandTokenizer[2];
-                String rightOperand = commandTokenizer[3];
-                calculator(leftOperand, operator, rightOperand);
+                calculator(commandTokenizer);
+            } else if (commandTokenizer[0].equals("/system")) {
+                String nextToken = commandTokenizer[1];
+                if (nextToken.equals("e") || nextToken.equals("exit")) {
+                    exitSystem();
+                } else if (nextToken.equals("f") || nextToken.equals("file")) {
+                    printProjectAbsolutePath();
+                }
             }
         }
     }
 
-    public static void calculator(String leftOperand, String operator, String rightOperand) {
+    public static void printProjectAbsolutePath() {
+        Path relativePath = Paths.get("");
+        String absolutePath = relativePath.toAbsolutePath().toString();
+        System.out.println(absolutePath);
+    }
+
+    public static void exitSystem() throws IOException {
+        FileInputStream fileInputStream = new FileInputStream("system/goodbye.txt");
+        BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(fileInputStream));
+        String systemExitMessage;
+
+        while ((systemExitMessage = bufferedReader.readLine()) != null) {
+            System.out.println(systemExitMessage);
+        }
+        System.exit(0);
+    }
+
+    public static void calculator(String[] commandTokenizer) {
+        String leftOperand = commandTokenizer[1];
+        String operator = commandTokenizer[2];
+        String rightOperand = commandTokenizer[3];
         int leftNum, rightNum;
 
         try {

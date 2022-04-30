@@ -61,6 +61,7 @@ public class Main {
 
         if (nextToken.equals("e") || nextToken.equals("exit")) {
             updateExitMessage(stringTokenizer);
+            return;
         } else if (!(nextToken.equals("b") || nextToken.equals("banner"))) {
             // b, banner 메타데이터가 생략된 경우도 고려해야함
             // ex) /system u MyProgram Launched!! v1.0.1

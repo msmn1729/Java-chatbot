@@ -2,6 +2,7 @@ import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.StringTokenizer;
 
 public class Main {
     public static void main(String[] args) throws IOException {
@@ -10,6 +11,7 @@ public class Main {
         InputStreamReader inputStreamReader = new InputStreamReader(bufferedInputStream, StandardCharsets.UTF_8);
         BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
 
+        printProgramBanner();
         String command;
         while ((command = bufferedReader.readLine()) != null) {
             if (command.charAt(0) != '/') {
@@ -18,16 +20,56 @@ public class Main {
             }
 
             String[] commandTokenizer = command.split(" ");
+            StringTokenizer stringTokenizer = new StringTokenizer(command, " ");
+            stringTokenizer.nextToken();
+
             if (commandTokenizer[0].equals("/cal")) {
                 calculator(commandTokenizer);
             } else if (commandTokenizer[0].equals("/system")) {
                 String nextToken = commandTokenizer[1];
-                if (nextToken.equals("e") || nextToken.equals("exit")) {
-                    exitSystem();
-                } else if (nextToken.equals("f") || nextToken.equals("file")) {
-                    printProjectAbsolutePath();
+                switch (nextToken) {
+                    case "e":
+                    case "exit":
+                        exitProgram();
+                        break;
+                    case "f":
+                    case "file":
+                        printProjectAbsolutePath();
+                        break;
+                    case "u":
+                    case "update":
+                        stringTokenizer.nextToken();
+                        updateBannerMessage(stringTokenizer);
+                        break;
                 }
             }
+        }
+    }
+
+    public static void updateBannerMessage(StringTokenizer stringTokenizer) throws IOException {
+        String nextToken = stringTokenizer.nextToken();
+        StringBuilder stringBuilder = new StringBuilder();
+
+        if (nextToken.equals("b") || nextToken.equals("banner")) {
+            while (stringTokenizer.hasMoreTokens()) {
+                stringBuilder.append(stringTokenizer.nextToken()).append(" ");
+            }
+
+            FileOutputStream fileOutputStream = new FileOutputStream("system/banner.txt");
+            BufferedWriter bufferedWriter = new BufferedWriter(new OutputStreamWriter(fileOutputStream));
+            bufferedWriter.write(stringBuilder.toString());
+            bufferedWriter.flush();
+            bufferedWriter.close();
+        }
+    }
+
+    public static void printProgramBanner() throws IOException {
+        FileInputStream fileInputStream = new FileInputStream("system/banner.txt");
+        BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(fileInputStream));
+        String bannerMessage;
+
+        while ((bannerMessage = bufferedReader.readLine()) != null) {
+            System.out.println(bannerMessage);
         }
     }
 
@@ -37,7 +79,7 @@ public class Main {
         System.out.println(absolutePath);
     }
 
-    public static void exitSystem() throws IOException {
+    public static void exitProgram() throws IOException {
         FileInputStream fileInputStream = new FileInputStream("system/goodbye.txt");
         BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(fileInputStream));
         String systemExitMessage;

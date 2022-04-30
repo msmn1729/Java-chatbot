@@ -19,28 +19,24 @@ public class Main {
                 continue;
             }
 
-            String[] commandTokenizer = command.split(" ");
             StringTokenizer stringTokenizer = new StringTokenizer(command, " ");
-            stringTokenizer.nextToken();
+            String metaData = stringTokenizer.nextToken();
 
-            if (commandTokenizer[0].equals("/cal")) {
-                calculator(commandTokenizer);
-            } else if (commandTokenizer[0].equals("/system")) {
-                String nextToken = commandTokenizer[1];
-                switch (nextToken) {
-                    case "e":
-                    case "exit":
+            switch (metaData) {
+                case "/cal": {
+                    calculator(stringTokenizer);
+                    break;
+                }
+                case "/system": {
+                    metaData = stringTokenizer.nextToken();
+                    if (metaData.equals("e") || metaData.equals("exit")) {
                         exitProgram();
-                        break;
-                    case "f":
-                    case "file":
+                    } else if (metaData.equals("f") || metaData.equals("file")) {
                         printProjectAbsolutePath();
-                        break;
-                    case "u":
-                    case "update":
-                        stringTokenizer.nextToken();
+                    } else if (metaData.equals("u") || metaData.equals("update")) {
                         updateBannerMessage(stringTokenizer);
-                        break;
+                    }
+                    break;
                 }
             }
         }
@@ -90,10 +86,10 @@ public class Main {
         System.exit(0);
     }
 
-    public static void calculator(String[] commandTokenizer) {
-        String leftOperand = commandTokenizer[1];
-        String operator = commandTokenizer[2];
-        String rightOperand = commandTokenizer[3];
+    public static void calculator(StringTokenizer stringTokenizer) {
+        String leftOperand = stringTokenizer.nextToken();
+        String operator = stringTokenizer.nextToken();
+        String rightOperand = stringTokenizer.nextToken();
         int leftNum, rightNum;
 
         try {

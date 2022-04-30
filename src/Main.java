@@ -34,7 +34,7 @@ public class Main {
                     } else if (metaData.equals("f") || metaData.equals("file")) {
                         printProjectAbsolutePath();
                     } else if (metaData.equals("u") || metaData.equals("update")) {
-                        updateBannerMessage(stringTokenizer);
+                        updateMessage(stringTokenizer);
                     }
                     break;
                 }
@@ -42,21 +42,40 @@ public class Main {
         }
     }
 
-    public static void updateBannerMessage(StringTokenizer stringTokenizer) throws IOException {
+    public static void updateExitMessage(StringTokenizer stringTokenizer) throws IOException {
+        FileOutputStream fileOutputStream = new FileOutputStream("system/goodbye.txt");
+        BufferedWriter bufferedWriter = new BufferedWriter(new OutputStreamWriter(fileOutputStream));
+
+        StringBuilder stringBuilder = new StringBuilder();
+        while (stringTokenizer.hasMoreTokens()) {
+            stringBuilder.append(stringTokenizer.nextToken()).append(" ");
+        }
+        bufferedWriter.write(stringBuilder.toString());
+        bufferedWriter.flush();
+        bufferedWriter.close();
+    }
+
+    public static void updateMessage(StringTokenizer stringTokenizer) throws IOException {
         String nextToken = stringTokenizer.nextToken();
         StringBuilder stringBuilder = new StringBuilder();
 
-        if (nextToken.equals("b") || nextToken.equals("banner")) {
-            while (stringTokenizer.hasMoreTokens()) {
-                stringBuilder.append(stringTokenizer.nextToken()).append(" ");
-            }
-
-            FileOutputStream fileOutputStream = new FileOutputStream("system/banner.txt");
-            BufferedWriter bufferedWriter = new BufferedWriter(new OutputStreamWriter(fileOutputStream));
-            bufferedWriter.write(stringBuilder.toString());
-            bufferedWriter.flush();
-            bufferedWriter.close();
+        if (nextToken.equals("e") || nextToken.equals("exit")) {
+            updateExitMessage(stringTokenizer);
+        } else if (!(nextToken.equals("b") || nextToken.equals("banner"))) {
+            // b, banner 메타데이터가 생략된 경우도 고려해야함
+            // ex) /system u MyProgram Launched!! v1.0.1
+            stringBuilder.append(nextToken).append(" ");
         }
+
+        while (stringTokenizer.hasMoreTokens()) {
+            stringBuilder.append(stringTokenizer.nextToken()).append(" ");
+        }
+
+        FileOutputStream fileOutputStream = new FileOutputStream("system/banner.txt");
+        BufferedWriter bufferedWriter = new BufferedWriter(new OutputStreamWriter(fileOutputStream));
+        bufferedWriter.write(stringBuilder.toString());
+        bufferedWriter.flush();
+        bufferedWriter.close();
     }
 
     public static void printProgramBanner() throws IOException {

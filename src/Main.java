@@ -4,51 +4,61 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.StringTokenizer;
 
+import static java.text.MessageFormat.format;
+
 public class Main {
+    public static final Exit EXIT = new Exit();
+    public static final File FILE = new File();
+    public static final Update UPDATE = new Update();
+    public static final Banner BANNER = new Banner();
+    public static final String METADATA_DELIM = " ";
+    public static final String SPACE = " ";
+    public static final String RELATIVE_PROJECT_LOCATION = "";
+
     public static void main(String[] args) throws IOException {
-        InputStream inputStream = System.in;
-        BufferedInputStream bufferedInputStream = new BufferedInputStream(inputStream, 8192);
-        InputStreamReader inputStreamReader = new InputStreamReader(bufferedInputStream, StandardCharsets.UTF_8);
-        BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
+
+        BufferedReader bufferedReader = createBufferedReader(System.in);
 
         printProgramBanner();
         String command;
         while ((command = bufferedReader.readLine()) != null) {
-            if (command.charAt(0) != '/') {
-                System.out.println("warning: 명령어의 첫 글자는 '/'으로 시작해야 합니다.");
+            if (command.charAt(0) != CommandContant.PREFIX) {
+                System.out.println(format("warning: 명령어의 첫 글자는 `{0}` 으로 시작해야 합니다.", CommandContant.PREFIX));
                 continue;
             }
 
-            StringTokenizer stringTokenizer = new StringTokenizer(command, " ");
+            StringTokenizer stringTokenizer = new StringTokenizer(command, METADATA_DELIM);
             String metaData = stringTokenizer.nextToken();
 
-            switch (metaData) {
-                case "/cal": {
-                    calculator(stringTokenizer);
-                    break;
-                }
-                case "/system": {
-                    metaData = stringTokenizer.nextToken();
-                    if (metaData.equals("e") || metaData.equals("exit")) {
-                        exitProgram();
-                    } else if (metaData.equals("f") || metaData.equals("file")) {
-                        printProjectAbsolutePath();
-                    } else if (metaData.equals("u") || metaData.equals("update")) {
-                        updateMessage(stringTokenizer);
-                    }
-                    break;
+            if (metaData.equals(CommandContant.CALCULATOR)) {
+                calculator(stringTokenizer);
+            } else if (metaData.equals(CommandContant.SYSTEM)) {
+                metaData = stringTokenizer.nextToken();
+                if (EXIT.contain(metaData)) {
+                    exitProgram();
+                } else if (FILE.contain(metaData)) {
+                    printProjectAbsolutePath();
+                } else if (UPDATE.contain(metaData)) {
+                    updateMessage(stringTokenizer);
                 }
             }
         }
     }
 
+    public static BufferedReader createBufferedReader(InputStream inputStream) {
+        BufferedInputStream bufferedInputStream = new BufferedInputStream(inputStream, 8192);
+        InputStreamReader inputStreamReader = new InputStreamReader(bufferedInputStream, StandardCharsets.UTF_8);
+
+        return new BufferedReader(inputStreamReader);
+    }
+
     public static void updateExitMessage(StringTokenizer stringTokenizer) throws IOException {
-        FileOutputStream fileOutputStream = new FileOutputStream("system/goodbye.txt");
+        FileOutputStream fileOutputStream = new FileOutputStream(ProjectPath.RELATIVE_SYSTEM_EXIT);
         BufferedWriter bufferedWriter = new BufferedWriter(new OutputStreamWriter(fileOutputStream));
 
         StringBuilder stringBuilder = new StringBuilder();
         while (stringTokenizer.hasMoreTokens()) {
-            stringBuilder.append(stringTokenizer.nextToken()).append(" ");
+            stringBuilder.append(stringTokenizer.nextToken()).append(SPACE);
         }
         bufferedWriter.write(stringBuilder.toString());
         bufferedWriter.flush();
@@ -59,20 +69,20 @@ public class Main {
         String nextToken = stringTokenizer.nextToken();
         StringBuilder stringBuilder = new StringBuilder();
 
-        if (nextToken.equals("e") || nextToken.equals("exit")) {
+        if (EXIT.contain(nextToken)) {
             updateExitMessage(stringTokenizer);
             return;
-        } else if (!(nextToken.equals("b") || nextToken.equals("banner"))) {
+        } else if (!BANNER.contain(nextToken)) {
             // b, banner 메타데이터가 생략된 경우도 고려해야함
             // ex) /system u MyProgram Launched!! v1.0.1
-            stringBuilder.append(nextToken).append(" ");
+            stringBuilder.append(nextToken).append(SPACE);
         }
 
         while (stringTokenizer.hasMoreTokens()) {
-            stringBuilder.append(stringTokenizer.nextToken()).append(" ");
+            stringBuilder.append(stringTokenizer.nextToken()).append(SPACE);
         }
 
-        FileOutputStream fileOutputStream = new FileOutputStream("system/banner.txt");
+        FileOutputStream fileOutputStream = new FileOutputStream(ProjectPath.RELATIVE_SYSTEM_BANNER);
         BufferedWriter bufferedWriter = new BufferedWriter(new OutputStreamWriter(fileOutputStream));
         bufferedWriter.write(stringBuilder.toString());
         bufferedWriter.flush();
@@ -80,8 +90,7 @@ public class Main {
     }
 
     public static void printProgramBanner() throws IOException {
-        FileInputStream fileInputStream = new FileInputStream("system/banner.txt");
-        BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(fileInputStream));
+        BufferedReader bufferedReader = createBufferedReader(new FileInputStream(ProjectPath.RELATIVE_SYSTEM_BANNER));
         String bannerMessage;
 
         while ((bannerMessage = bufferedReader.readLine()) != null) {
@@ -90,14 +99,13 @@ public class Main {
     }
 
     public static void printProjectAbsolutePath() {
-        Path relativePath = Paths.get("");
+        Path relativePath = Paths.get(RELATIVE_PROJECT_LOCATION);
         String absolutePath = relativePath.toAbsolutePath().toString();
         System.out.println(absolutePath);
     }
 
     public static void exitProgram() throws IOException {
-        FileInputStream fileInputStream = new FileInputStream("system/goodbye.txt");
-        BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(fileInputStream));
+        BufferedReader bufferedReader = createBufferedReader(new FileInputStream(ProjectPath.RELATIVE_SYSTEM_EXIT));
         String systemExitMessage;
 
         while ((systemExitMessage = bufferedReader.readLine()) != null) {
@@ -130,17 +138,18 @@ public class Main {
             return;
         }
 
-        switch (operator) {
-            case "+":
+        MathOperation mathOperation = MathOperation.forName(operator);
+        switch (mathOperation) {
+            case PLUS:
                 System.out.println(leftNum + rightNum);
                 break;
-            case "-":
+            case MINUS:
                 System.out.println(leftNum - rightNum);
                 break;
-            case "*":
+            case MULTI:
                 System.out.println(leftNum * rightNum);
                 break;
-            case "/":
+            case DIV:
                 if (rightNum == 0) {
                     System.out.println("error: 0으로 나눌 수 없습니다.");
                     return;
